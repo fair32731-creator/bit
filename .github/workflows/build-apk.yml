@@ -49,7 +49,7 @@ jobs:
               raise SystemExit("Premium cinema CSS is already injected")
           if "</head>" not in source:
               raise SystemExit("HTML head closing tag not found")
-          style = '<style id="bitanime-premium-cinema-v23-refresh">' + "\n" + css + "\n" + '</style>' + "\\n"
+          style = '<style id="bitanime-premium-cinema-v23-refresh">' + "\n" + css + "\n" + '</style>' + "\n"
           page.write_text(source.replace("</head>", style + "</head>", 1), encoding="utf-8")
           print("Premium cinematic hero CSS injected")
           PYEOF
