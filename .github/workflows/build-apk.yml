@@ -161,7 +161,8 @@ jobs:
           "$BUILD_TOOLS/zipalign" -v -p 4 android/app/build/outputs/apk/release/app-release-unsigned.apk BitAnime-Pro-v23.0-aligned.apk
           "$BUILD_TOOLS/apksigner" sign --ks "$KS_PATH" --ks-key-alias "$K_ALIAS" --ks-pass "pass:$KS_PASS" --key-pass "pass:$K_PASS" --out BitAnime-Pro-v23.0.apk BitAnime-Pro-v23.0-aligned.apk
           "$BUILD_TOOLS/apksigner" verify --verbose --print-certs BitAnime-Pro-v23.0.apk
-          "$BUILD_TOOLS/aapt" dump badging BitAnime-Pro-v23.0.apk | head -n 3
+          "$BUILD_TOOLS/aapt" dump badging BitAnime-Pro-v23.0.apk > /tmp/bitanime-badging.txt
+          grep -m1 "package:" /tmp/bitanime-badging.txt
           ls -lh BitAnime-Pro-v23.0.apk
 
       - name: Upload signed APK artifact
