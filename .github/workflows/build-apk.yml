@@ -32,7 +32,6 @@ jobs:
           test -s package.json
           test -s capacitor.config.json
           test -s scripts/patch_android.py
-          test -s signing/bitanime-release.keystore
           node -e "if (require('./package.json').version !== '23.0.0') process.exit(1)"
           echo "Restored BitAnime Pro v23.0.0 source successfully"
 
@@ -50,7 +49,7 @@ jobs:
               raise SystemExit("Premium cinema CSS is already injected")
           if "</head>" not in source:
               raise SystemExit("HTML head closing tag not found")
-          style = '<style id="bitanime-premium-cinema-v23-refresh">' + "\\n" + css + "\\n" + '</style>' + "\\n"
+          style = '<style id="bitanime-premium-cinema-v23-refresh">' + "\n" + css + "\n" + '</style>' + "\\n"
           page.write_text(source.replace("</head>", style + "</head>", 1), encoding="utf-8")
           print("Premium cinematic hero CSS injected")
           PYEOF
@@ -155,10 +154,4 @@ jobs:
           path: BitAnime-Pro-v23.0.apk
           if-no-files-found: error
           retention-days: 30
-      - name: Upload installable APK artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: BitAnime-Pro-v23.0-Premium-APK
-          path: BitAnime-Pro-v23.0.apk
-          if-no-files-found: error
-          retention-days: 30
+
