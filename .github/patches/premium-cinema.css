@@ -1,0 +1,147 @@
+/* BitAnime Pro — premium cinematic home refresh for desktop and Android WebView */
+#heroSpotlight { min-width: 0; }
+.v22-hero-cinema {
+  min-width: 0 !important;
+  min-height: 500px !important;
+  border-radius: 24px !important;
+  border: 1px solid rgba(255,255,255,.16) !important;
+  background: #05070b !important;
+  box-shadow: 0 26px 64px -24px rgba(0,0,0,.94), inset 0 1px 0 rgba(255,255,255,.18) !important;
+  isolation: isolate !important;
+}
+.v22-hero-bg {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  object-position: center 28% !important;
+  filter: brightness(.84) contrast(1.08) saturate(1.10) !important;
+  transform: scale(1.015);
+  will-change: opacity;
+}
+.v22-hero-scrim {
+  background:
+    linear-gradient(90deg, rgba(3,5,9,.76) 0%, rgba(3,5,9,.40) 52%, rgba(3,5,9,.14) 100%),
+    linear-gradient(180deg, rgba(3,5,9,.26) 0%, rgba(3,5,9,.04) 25%, rgba(3,5,9,.42) 54%, rgba(3,5,9,.96) 100%) !important;
+}
+.v22-hero-top, .v22-hero-body, .v22-hero-footer {
+  position: relative;
+  z-index: 2;
+  min-width: 0;
+}
+.v22-hero-title {
+  font-size: clamp(30px, 4vw, 48px) !important;
+  line-height: 1.02 !important;
+  letter-spacing: -.035em !important;
+  text-wrap: balance;
+}
+.v22-hero-synopsis {
+  max-width: 58ch;
+  font-size: 13px !important;
+  line-height: 1.58 !important;
+  color: rgba(248,250,252,.84) !important;
+  text-shadow: 0 1px 12px rgba(0,0,0,.58);
+}
+.v22-rank-label, .v22-season-chip, .v22-edit-pill {
+  box-shadow: 0 8px 22px rgba(0,0,0,.22);
+}
+.v22-cta-primary, .v22-cta-outline, .v22-cta-ghost, .v22-nav-circle {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.v22-cta-primary {
+  background: linear-gradient(180deg,#fff 0%,#e9edf2 100%) !important;
+  color: #080b10 !important;
+  box-shadow: 0 9px 24px rgba(255,255,255,.18), inset 0 1px 0 #fff !important;
+}
+.v22-cta-outline, .v22-cta-ghost {
+  background: rgba(10,14,22,.52) !important;
+  border-color: rgba(255,255,255,.28) !important;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.v22-progress-track { background: rgba(255,255,255,.24) !important; }
+.v22-progress-fill { background: linear-gradient(90deg,#8ce8e0,#fff) !important; }
+
+/* Compact phones: the artwork fills the hero; the scene thumbnails remain on desktop. */
+@media (max-width: 639px) {
+  #heroSpotlight { margin-inline: -1px; }
+  .v22-hero-cinema {
+    min-height: 480px !important;
+    height: auto !important;
+    border-radius: 20px !important;
+    border: 1px solid rgba(255,255,255,.18) !important;
+    box-shadow: 0 22px 48px -20px rgba(0,0,0,.95), inset 0 1px 0 rgba(255,255,255,.17) !important;
+  }
+  .v22-hero-bg { object-position: center 24% !important; }
+  .v22-hero-scrim {
+    background:
+      linear-gradient(180deg, rgba(3,5,9,.20) 0%, rgba(3,5,9,.04) 24%, rgba(3,5,9,.18) 40%, rgba(3,5,9,.70) 66%, rgba(3,5,9,.97) 100%),
+      linear-gradient(90deg, rgba(3,5,9,.34) 0%, transparent 72%) !important;
+  }
+  .v22-hero-top {
+    padding: 15px 14px 0 !important;
+    gap: 8px !important;
+    align-items: center !important;
+  }
+  .v22-hero-top > div { gap: 6px !important; }
+  .v22-rank-label { font-size: 10px !important; padding: 4px 8px !important; }
+  .v22-season-chip { font-size: 9px !important; padding: 4px 7px !important; max-width: 92px !important; }
+  .v22-edit-pill { padding: 5px 9px !important; font-size: 9px !important; }
+  .v22-hero-body {
+    flex: 1 1 auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: flex-end !important;
+    align-items: stretch !important;
+    gap: 0 !important;
+    min-height: 0 !important;
+    padding: 112px 16px 16px !important;
+  }
+  .v22-hero-left {
+    max-width: 100% !important;
+    gap: 10px !important;
+  }
+  .v22-hero-title {
+    font-size: clamp(29px, 8vw, 38px) !important;
+    line-height: 1.02 !important;
+    -webkit-line-clamp: 2 !important;
+    text-shadow: 0 3px 22px rgba(0,0,0,.78) !important;
+  }
+  .v22-hero-synopsis {
+    font-size: 12.5px !important;
+    line-height: 1.52 !important;
+    -webkit-line-clamp: 3 !important;
+    max-width: 52ch !important;
+  }
+  .v22-hero-right { display: none !important; }
+  .v22-cta-primary, .v22-cta-outline, .v22-cta-ghost {
+    min-height: 40px !important;
+    height: 40px !important;
+    padding: 0 14px !important;
+    font-size: 11.5px !important;
+  }
+  .v22-hero-footer {
+    padding: 0 14px 15px !important;
+    gap: 11px !important;
+  }
+  .v22-nav-circle { width: 36px !important; height: 36px !important; }
+  .v22-slide-counter { font-size: 11px !important; }
+}
+@media (max-width: 380px) {
+  .v22-hero-cinema { min-height: 465px !important; }
+  .v22-hero-body { padding: 98px 13px 14px !important; }
+  .v22-hero-top { padding-inline: 12px !important; }
+  .v22-rank-label { font-size: 9px !important; }
+  .v22-season-chip { max-width: 76px !important; }
+  .v22-cta-primary, .v22-cta-outline, .v22-cta-ghost {
+    padding: 0 10px !important;
+    font-size: 10.5px !important;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .v22-hero-bg, .v22-hero-left, .v22-scene-card {
+    animation: none !important;
+    transition: none !important;
+  }
+}
