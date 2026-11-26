@@ -1,56 +1,140 @@
 name: Build BitAnime Pro v23.0 APK
+
 on:
   workflow_dispatch:
   push:
     branches: [main, master]
     paths:
-      - index.html
-      - manifest.json
-      - package.json
-      - capacitor.config.json
-      - scripts/**
-      - assets/**
+      - '.github/source_chunks/**'
+      - '.github/workflows/build-apk.yml'
+
+permissions:
+  contents: read
+
 jobs:
   build-apk:
     runs-on: ubuntu-latest
+    timeout-minutes: 50
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
-      - name: Setup Node.js
+
+      - name: Restore exact v23.0 project archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat .github/source_chunks/*.b64 > /tmp/bitanime-v23.0.zip.b64
+          base64 --decode /tmp/bitanime-v23.0.zip.b64 > /tmp/bitanime-v23.0.zip
+          unzip -t /tmp/bitanime-v23.0.zip
+          unzip -oq /tmp/bitanime-v23.0.zip -d .
+          test -s index.html
+          test -s package.json
+          test -s capacitor.config.json
+          test -s scripts/patch_android.py
+          node -e "if (require('./package.json').version !== '23.0.0') process.exit(1)"
+          echo "Restored BitAnime Pro v23.0.0 source successfully"
+
+      - name: Setup Node.js 20
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - name: Setup Java
+
+      - name: Setup Java 21
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '21'
+
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+
+      - name: Install Android API 35 and build tools
+        run: sdkmanager --install 'platforms;android-35' 'build-tools;35.0.0' 'platform-tools'
+
       - name: Prepare Capacitor Android project
+        shell: bash
         run: |
-          test -f index.html || { echo "index.html missing"; exit 1; }
+          set -euo pipefail
           mkdir -p www
           cp index.html www/index.html
-          [ ! -f manifest.json ] || cp manifest.json www/manifest.json
-          npm install @capacitor/core@7 @capacitor/cli@7 @capacitor/android@7
-          npm install -D @capacitor/assets@3
+          if [ -f manifest.json ]; then cp manifest.json www/manifest.json; fi
+          if [ -f assets/icon-512.png ]; then cp assets/icon-512.png www/icon.png; fi
+          npm install
           npx cap add android
           npx cap copy android
-      - name: Generate Android app assets
+
+      - name: Generate app icons and splash screens
+        shell: bash
         run: |
-          npx capacitor-assets generate --android --iconBackgroundColor '#050608' --splashBackgroundColor '#050608' || true
+          if [ -f assets/icon-only.png ]; then
+            npx capacitor-assets generate --android --iconBackgroundColor '#050608' --splashBackgroundColor '#050608'
+          fi
+
       - name: Apply BitAnime Android patches
         run: python3 scripts/patch_android.py
-      - name: Build Debug APK
+
+      - name: Set Android v23.0 version metadata
+        shell: bash
         run: |
+          python3 - <<'PYEOF'
+          import re
+          from pathlib import Path
+          path = Path("android/app/build.gradle")
+          content = path.read_text(encoding="utf-8")
+          content, code_count = re.subn(r"versionCode\s+\d+", "versionCode 23000", content, count=1)
+          content, name_count = re.subn(r"""versionName\s+["'][^"']+["']""", 'versionName "23.0"', content, count=1)
+          if code_count != 1 or name_count != 1:
+              raise SystemExit("Could not set Android versionCode/versionName")
+          path.write_text(content, encoding="utf-8")
+          print("Android version set to 23.0 (versionCode 23000)")
+          PYEOF
+
+      - name: Configure regional Maven fallback
+        shell: bash
+        run: |
+          python3 - <<'PYEOF'
+          from pathlib import Path
+          mirror = 'maven { url "https://maven-central-asia.storage-download.googleapis.com/maven2/" }'
+          for path in Path("android").rglob("*.gradle"):
+              source = path.read_text(encoding="utf-8")
+              if "mavenCentral()" in source and mirror not in source:
+                  path.write_text(source.replace("mavenCentral()", mirror + "\n        mavenCentral()"), encoding="utf-8")
+          PYEOF
+
+      - name: Build installable Debug APK
+        shell: bash
+        run: |
+          set -euo pipefail
           cd android
           chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon
-          mkdir -p ../dist-apks
-          cp app/build/outputs/apk/debug/app-debug.apk ../dist-apks/BitAnime-Pro-v23.0-Debug.apk
-      - name: Upload installable APK
+          BUILD_OK=0
+          for attempt in 1 2 3; do
+            echo "Gradle debug build attempt ${attempt}/3"
+            if ./gradlew assembleDebug --no-daemon --max-workers=2; then
+              BUILD_OK=1
+              break
+            fi
+            if [ "${attempt}" -lt 3 ]; then sleep $((attempt * 15)); fi
+          done
+          test "${BUILD_OK}" = "1"
+          cd ..
+          cp android/app/build/outputs/apk/debug/app-debug.apk BitAnime-Pro-v23.0.apk
+
+      - name: Verify APK signature and package
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s BitAnime-Pro-v23.0.apk
+          BUILD_TOOLS=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -n 1)
+          "$BUILD_TOOLS/apksigner" verify --verbose BitAnime-Pro-v23.0.apk
+          ls -lh BitAnime-Pro-v23.0.apk
+
+      - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: BitAnime-Pro-v23.0-APK
-          path: dist-apks/*.apk
+          path: BitAnime-Pro-v23.0.apk
+          if-no-files-found: error
+          retention-days: 30
