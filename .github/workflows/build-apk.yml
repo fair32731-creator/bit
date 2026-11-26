@@ -50,7 +50,7 @@ jobs:
               raise SystemExit("Premium cinema CSS is already injected")
           if "</head>" not in source:
               raise SystemExit("HTML head closing tag not found")
-          style = '<style id="bitanime-premium-cinema-v23-refresh">\\n' + css + '\\n</style>\\n'
+          style = '<style id="bitanime-premium-cinema-v23-refresh">\n' + css + '\n</style>\n'
           page.write_text(source.replace("</head>", style + "</head>", 1), encoding="utf-8")
           print("Premium cinematic hero CSS injected")
           PYEOF
@@ -104,8 +104,8 @@ jobs:
           from pathlib import Path
           path = Path("android/app/build.gradle")
           content = path.read_text(encoding="utf-8")
-          content, code_count = re.subn(r"versionCode\\s+\\d+", "versionCode 23000", content, count=1)
-          content, name_count = re.subn(r"""versionName\\s+["'][^"']+["']""", 'versionName "23.0"', content, count=1)
+          content, code_count = re.subn(r"versionCode\s+\d+", "versionCode 23000", content, count=1)
+          content, name_count = re.subn(r"""versionName\s+["'][^"']+["']""", 'versionName "23.0"', content, count=1)
           if code_count != 1 or name_count != 1:
               raise SystemExit("Could not set Android versionCode/versionName")
           path.write_text(content, encoding="utf-8")
@@ -121,7 +121,7 @@ jobs:
           for path in Path("android").rglob("*.gradle"):
               source = path.read_text(encoding="utf-8")
               if "mavenCentral()" in source and mirror not in source:
-                  path.write_text(source.replace("mavenCentral()", mirror + "\\n        mavenCentral()"), encoding="utf-8")
+                  path.write_text(source.replace("mavenCentral()", mirror + "\n        mavenCentral()"), encoding="utf-8")
           PYEOF
 
       - name: Build and sign installable Release APK
@@ -135,10 +135,10 @@ jobs:
           KS_PATH="signing/bitanime-release.keystore"
           test -s "$KS_PATH"
 
-          # Use repository signing data unless the owner has configured Actions secrets.
-          KS_PASS="${KEYSTORE_PASSWORD:-$(sed -n 's/^[[:space:]]*2\\.[[:space:]]*KEYSTORE_PASSWORD[[:space:]]*=[[:space:]]*//p' signing/SIGNING_INFO.txt)}"
-          K_ALIAS="${KEY_ALIAS:-$(sed -n 's/^[[:space:]]*3\\.[[:space:]]*KEY_ALIAS[[:space:]]*=[[:space:]]*//p' signing/SIGNING_INFO.txt)}"
-          K_PASS="${KEY_PASSWORD:-$(sed -n 's/^[[:space:]]*4\\.[[:space:]]*KEY_PASSWORD[[:space:]]*=[[:space:]]*//p' signing/SIGNING_INFO.txt)}"
+          # Use Actions secrets when present; otherwise read the owner's bundled signing information.
+          KS_PASS="${KEYSTORE_PASSWORD:-$(grep -m1 'KEYSTORE_PASSWORD =' signing/SIGNING_INFO.txt | cut -d= -f2- | xargs)}"
+          K_ALIAS="${KEY_ALIAS:-$(grep -m1 'KEY_ALIAS ' signing/SIGNING_INFO.txt | cut -d= -f2- | xargs)}"
+          K_PASS="${KEY_PASSWORD:-$(grep -m1 'KEY_PASSWORD ' signing/SIGNING_INFO.txt | cut -d= -f2- | xargs)}"
           test -n "$KS_PASS"
           test -n "$K_ALIAS"
           test -n "$K_PASS"
@@ -159,13 +159,7 @@ jobs:
 
           BUILD_TOOLS=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -n 1)
           "$BUILD_TOOLS/zipalign" -v -p 4 android/app/build/outputs/apk/release/app-release-unsigned.apk BitAnime-Pro-v23.0-aligned.apk
-          "$BUILD_TOOLS/apksigner" sign \\
-            --ks "$KS_PATH" \\
-            --ks-key-alias "$K_ALIAS" \\
-            --ks-pass "pass:$KS_PASS" \\
-            --key-pass "pass:$K_PASS" \\
-            --out BitAnime-Pro-v23.0.apk \\
-            BitAnime-Pro-v23.0-aligned.apk
+          "$BUILD_TOOLS/apksigner" sign --ks "$KS_PATH" --ks-key-alias "$K_ALIAS" --ks-pass "pass:$KS_PASS" --key-pass "pass:$K_PASS" --out BitAnime-Pro-v23.0.apk BitAnime-Pro-v23.0-aligned.apk
           "$BUILD_TOOLS/apksigner" verify --verbose --print-certs BitAnime-Pro-v23.0.apk
           "$BUILD_TOOLS/aapt" dump badging BitAnime-Pro-v23.0.apk | head -n 3
           ls -lh BitAnime-Pro-v23.0.apk
